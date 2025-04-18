@@ -1,9 +1,22 @@
-// This example shows the usage of intermediate waypoints. It will only work with Ruckig Pro or enabled cloud API.
+/*
+ * Description:
+ * -----------------------
+ * This example demonstrates how to generate a time-optimal trajectory for a multi-degree-of-freedom system
+ * using the Ruckig library, incorporating intermediate waypoints. The program:
+ *  1. Defines the system's current state (position, velocity, acceleration).
+ *  2. Specifies a series of intermediate positions that the trajectory must pass through.
+ *  3. Sets target state constraints (position, velocity, acceleration) and motion limits (max velocity, acceleration, jerk).
+ *  4. Computes and updates the trajectory in real-time control cycles, printing the position at each time step.
+ *
+ * Use Case:
+ * -------------------
+ * Ideal for robotics and automation applications where a manipulator or an actuator must move through
+ * multiple precise points in space—such as pick-and-place tasks, tool-path planning in CNC machines,
+ * or coordinated multi-axis motion in industrial robots—while ensuring smooth and time-efficient motion.
+ */
 
 #include <iostream>
-
 #include <ruckig/ruckig.hpp>
-
 
 using namespace ruckig;
 
