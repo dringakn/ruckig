@@ -31,7 +31,10 @@ class Plotter:
                 global_max = max(global_max, np.max(dddqaxis[:, dof]))
                 global_min = min(global_min, np.min(dddqaxis[:, dof]))
 
-            plt.subplot(inp.degrees_of_freedom, 1, dof + 1)
+            plt.subplot(
+                inp.degrees_of_freedom, 1, dof + 1,
+                label=f"dof{dof}_subplot"       # unique per‐axis
+            )            
             plt.ylabel(f'DoF {dof + 1}')
             plt.plot(taxis, qaxis[:, dof], label=f'Position {dof + 1}')
             plt.plot(taxis, dqaxis[:, dof], label=f'Velocity {dof + 1}')
