@@ -78,7 +78,7 @@ if __name__ == '__main__':
     print(f'Calculation duration: {first_output.calculation_duration:0.1f} µs')
     print(f'Trajectory duration: {first_output.trajectory.duration:0.4f} s')
 
-    # 8) (Optional) Plot the full trajectory
+    # 8) Plot the full trajectory in pdf format
     from pathlib import Path
     from plotter import Plotter
     project_path = Path(__file__).parent.parent
