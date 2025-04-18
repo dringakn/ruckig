@@ -1,3 +1,68 @@
+/*
+  Description
+  This program demonstrates how to perform real-time, jerk-limited trajectory
+  generation for a system with multiple degrees of freedom (DOFs) using the
+  Ruckig online trajectory generator (OTG) library. The core idea is to
+  compute smooth position, velocity, and acceleration profiles that respect
+  specified maximum velocity, acceleration, and jerk limits, updating these
+  profiles at each control cycle.
+
+  The flow is as follows:
+    1. Define a minimal container (`MinimalDynamicDofsVector`) to hold state
+       and limit values for a dynamic number of DOFs, using a `std::deque`
+       internally for flexible resizing.
+    2. Instantiate the Ruckig OTG for a given number of DOFs (here: 3) and a
+       control cycle time (here: 10 ms).
+    3. Populate the input parameters:
+         • Current position, velocity, acceleration
+         • Target position, velocity, acceleration
+         • Maximum allowed velocity, acceleration, jerk for each axis/DOF
+    4. Enter a control loop:
+         • Call `otg.update(input, output)` to compute the next step of the
+           trajectory. While the trajectory is still in progress (`Working`),
+           print the current time and computed position.
+         • Feed the newly computed state back into the input for the next
+           cycle, enabling continuous real-time updates.
+    5. When the trajectory is complete, output the total trajectory duration.
+
+  Use Case
+  -------------------
+  • Industrial Robotics: Planning smooth arm or end‑effector motions that
+    avoid abrupt changes in acceleration (jerk), protecting both the payload
+    and mechanical components from excessive stress.
+  • CNC Machining & 3D Printing: Generating toolpaths that adhere to speed,
+    acceleration, and jerk constraints for precision and surface finish.
+  • Autonomous Vehicles & Drones: Computing safe, comfortable trajectories
+    for multi‑axis motion (e.g., pan‑tilt cameras, gimbals) in real time.
+  • Any embedded or control application requiring low‑latency trajectory
+    updates within a fixed control loop.
+
+  Features
+  -----------------
+  1. **Template Metaprogramming**  
+     - `MinimalDynamicDofsVector<T, DOFs>`: Generic container supporting
+       an arbitrary number of DOFs at runtime, while keeping compile‑time
+       template parameters for library compatibility.
+  2. **Standard Library Components**  
+     - `std::deque<T>`: Dynamically resizable buffer for storing per‑DOF data.
+     - `std::initializer_list<T>`: Convenient initialization of vectors
+       (e.g., `{0.0, -2.2, -0.5}`).
+     - Operator overloading (`operator[]`, `operator==`) for intuitive usage.
+  3. **Ruckig Library**  
+     - `Ruckig<DynamicDOFs, MinimalDynamicDofsVector>`: The OTG engine,
+       parameterized for dynamic DOFs and custom vector type.
+     - `InputParameter` & `OutputParameter`: Typed structs to specify
+       current/target states and retrieve computed next‑step states.
+     - `update()`: Computes the trajectory incrementally, returning status
+       flags (`Working`, `Finished`, `Error`).
+     - `pass_to_input()`: Utility to feed the previous output directly as the
+       next input, simplifying control‑loop logic.
+  4. **Real‑Time Control Loop**  
+     - Fixed control cycle (`0.01` s) to meet deterministic update rates.
+     - Streaming output to `std::cout` for logging or visualization.
+
+*/
+
 #include <deque>
 #include <iostream>
 
