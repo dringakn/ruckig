@@ -1,52 +1,70 @@
+/**
+ * Description:
+ * --------------------------------
+ * This program demonstrates **offline** trajectory planning for a 3‑DoF system  
+ * (e.g., a small robotic arm, CNC gantry, or drone gimbal) using Ruckig’s jerk‑limited  
+ * S‑curve profiles. Instead of stepping through a control loop, we compute the entire  
+ * motion in one go, then query any timepoint for position, velocity, and acceleration.  
+ * 
+ * Use Case:
+ *   • A pick‑and‑place robot needs to move its end‑effector from one pose to another  
+ *     with strict smoothness constraints to protect delicate payloads.  
+ *   • You precompute the motion offline (during setup or when targets update)  
+ *     and then stream the resulting trajectory to your controller or simulator.  
+ */
+
 #include <iostream>
-
+#include <array>
 #include <ruckig/ruckig.hpp>
-
 
 using namespace ruckig;
 
 int main() {
-    // Create input parameters
+    // 1) Fill input state: current (pos, vel, accel) and target (pos, vel, accel)
     InputParameter<3> input;
-    input.current_position = {0.0, 0.0, 0.5};
-    input.current_velocity = {0.0, -2.2, -0.5};
-    input.current_acceleration = {0.0, 2.5, -0.5};
+    input.current_position     = {0.0,  0.0,  0.5};
+    input.current_velocity     = {0.0, -2.2, -0.5};
+    input.current_acceleration = {0.0,  2.5, -0.5};
 
-    input.target_position = {5.0, -2.0, -3.5};
-    input.target_velocity = {0.0, -0.5, -2.0};
-    input.target_acceleration = {0.0, 0.0, 0.5};
+    input.target_position      = {5.0, -2.0, -3.5};
+    input.target_velocity      = {0.0, -0.5, -2.0};
+    input.target_acceleration  = {0.0,  0.0,  0.5};
 
-    input.max_velocity = {3.0, 1.0, 3.0};
-    input.max_acceleration = {3.0, 2.0, 1.0};
-    input.max_jerk = {4.0, 3.0, 2.0};
+    // 2) Define symmetric limits (max) and asymmetric limits (min) per axis
+    input.max_velocity     = { 3.0,  1.0,  3.0};
+    input.max_acceleration = { 3.0,  2.0,  1.0};
+    input.max_jerk         = { 4.0,  3.0,  2.0};
 
-    // Set different constraints for negative direction
-    input.min_velocity = {-2.0, -0.5, -3.0};
+    input.min_velocity     = {-2.0, -0.5, -3.0};
     input.min_acceleration = {-2.0, -2.0, -2.0};
 
-    // We don't need to pass the control rate (cycle time) when using only offline features
-    Ruckig<3> otg;
-    Trajectory<3> trajectory;
+    // 3) Offline trajectory generation (no real‑time loop)
+    Ruckig<3> otg;                // default constructor for offline use
+    Trajectory<3> trajectory;     // holds the full time‑parameterized profile
 
-    // Calculate the trajectory in an offline manner (outside of the control loop)
+    // 4) Compute entire trajectory
     Result result = otg.calculate(input, trajectory);
     if (result == Result::ErrorInvalidInput) {
-        std::cout << "Invalid input!" << std::endl;
+        std::cerr << "Invalid input parameters!" << std::endl;
         return -1;
     }
 
-    // Get duration of the trajectory
-    std::cout << "Trajectory duration: " << trajectory.get_duration() << " [s]." << std::endl;
+    // 5) Inspect trajectory duration
+    double duration = trajectory.get_duration();
+    std::cout << "Trajectory duration: " << duration << " s\n";
 
-    double new_time = 1.0;
+    // 6) Query kinematic state at an arbitrary time
+    double query_time = 1.0;  // seconds into the motion
+    std::array<double,3> pos, vel, acc;
+    trajectory.at_time(query_time, pos, vel, acc);
+    std::cout << "At t=" << query_time << " s → pos: " << join(pos)
+              << ", vel: " << join(vel)
+              << ", acc: " << join(acc) << "\n";
 
-    // Then, we can calculate the kinematic state at a given time
-    std::array<double, 3> new_position, new_velocity, new_acceleration;
-    trajectory.at_time(new_time, new_position, new_velocity, new_acceleration);
+    // 7) Get position extrema over the entire trajectory for each axis
+    auto extrema = trajectory.get_position_extrema();
+    std::cout << "Axis 3 position range: ["
+              << extrema[2].min << ", " << extrema[2].max << "]\n";
 
-    std::cout << "Position at time " << new_time << " [s]: " << join(new_position) << std::endl;
-
-    // Get some info about the position extrema of the trajectory
-    std::array<Bound, 3> position_extrema = trajectory.get_position_extrema();
-    std::cout << "Position extremas for DoF 4 are " << position_extrema[2].min << " (min) to " << position_extrema[2].max << " (max)" << std::endl;
+    return 0;
 }
