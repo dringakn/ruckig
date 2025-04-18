@@ -77,7 +77,9 @@ class Plotter:
             plt.grid(True)
 
         plt.xlabel('t')
-        plt.savefig(Path(__file__).parent.parent / 'build' / filename)
+        out_dir = Path(__file__).parent.parent / 'build'
+        out_dir.mkdir(parents=True, exist_ok=True)
+        plt.savefig(out_dir / filename)
 
         if show:
             plt.show()
