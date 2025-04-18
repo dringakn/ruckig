@@ -77,7 +77,10 @@ class Plotter:
             plt.grid(True)
 
         plt.xlabel('t')
-        plt.savefig(Path(__file__).parent.parent / 'build' / filename)
+        # Interpret filename as a relative path under build/, and make all parents
+        output_path = Path(__file__).parent.parent / 'build' / filename
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        plt.savefig(output_path)
 
         if show:
             plt.show()
