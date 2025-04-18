@@ -1,4 +1,42 @@
-# Only with Ruckig Pro
+# =============================================================================
+# Description
+#
+# This script demonstrates how to generate and follow a smooth, real-time trajectory
+# for a single degree of freedom (DoF) system using the Ruckig Pro online trajectory
+# generation (OTG) library. It defines three sample target motion profiles—
+# a linear velocity ramp, a constant-acceleration parabola, and a sinusoidal motion—
+# and then uses Ruckig’s Trackig class to compute a feasible “follow” trajectory that
+# respects specified kinematic limits (velocity, acceleration, jerk) and optional
+# position bounds. At each time step, the computed trajectory point is fed back as the
+# new starting state, enabling continuous, online replanning.
+#
+# Use Case
+# ------------------
+# In robotics, CNC machining, or any motion‑control application, actuators must follow
+# planned setpoints without exceeding hardware limits or introducing excessive jerk.
+# This example could be used for:
+#   • Robotic arm joint control following a desired motion profile
+#   • Automated linear actuators in pick‑and‑place machines
+#   • Camera gimbal stabilization following smooth pan/tilt commands
+#
+# Key Features
+# ------------------------
+# 1. **Online Trajectory Generation (OTG):** Continuous update of trajectory at 100 Hz
+# 2. **Kinematic Constraints:** Per-DoF limits on max velocity, acceleration, and jerk
+# 3. **Position Bounds:** Enforcement of minimum and maximum allowed positions
+# 4. **Multiple Motion Profiles:** Ramp, constant-acceleration, and sinusoidal target signals
+# 5. **Performance Measurement:** Reporting computation time per update in microseconds
+# 6. **State Feedback Loop:** Passing output back to input for the next iteration
+#
+# Used Functionality (from Ruckig Pro)
+# ------------------------------------
+# - `Trackig(degrees_of_freedom, delta_time)`: Main OTG object for real-time updates
+# - `InputParameter(dof)`: Container for current state and motion limits
+# - `OutputParameter(dof)`: Container for OTG-computed next state
+# - `TargetState(dof)`: Definition of desired position, velocity, acceleration
+# - `otg.update(target_state, inp, out)`: Compute next feasible trajectory point
+# - `out.pass_to_input(inp)`: Feed computed state back into the input for chaining
+# =============================================================================
 
 from math import sin, cos
 
@@ -70,21 +108,21 @@ if __name__ == '__main__':
         follow_list.append([out.new_position, out.new_velocity, out.new_acceleration])
 
     # Plot the trajectory
-    # from pathlib import Path
-    # project_path = Path(__file__).parent.parent.absolute()
+    from pathlib import Path
+    project_path = Path(__file__).parent.parent.absolute()
 
-    # import numpy as np
-    # import matplotlib.pyplot as plt
+    import numpy as np
+    import matplotlib.pyplot as plt
 
-    # follow_list = np.array(follow_list)
-    # target_list = np.array(target_list)
+    follow_list = np.array(follow_list)
+    target_list = np.array(target_list)
 
-    # plt.ylabel(f'DoF 1')
-    # plt.plot(steps, follow_list[:, 0], label='Follow Position')
-    # plt.plot(steps, follow_list[:, 1], label='Follow Velocity', linestyle='dotted')
-    # plt.plot(steps, follow_list[:, 2], label='Follow Acceleration', linestyle='dotted')
-    # plt.plot(steps, target_list[:, 0], color='r', label='Target Position')
-    # plt.grid(True)
-    # plt.legend()
+    plt.ylabel(f'DoF 1')
+    plt.plot(steps, follow_list[:, 0], label='Follow Position')
+    plt.plot(steps, follow_list[:, 1], label='Follow Velocity', linestyle='dotted')
+    plt.plot(steps, follow_list[:, 2], label='Follow Acceleration', linestyle='dotted')
+    plt.plot(steps, target_list[:, 0], color='r', label='Target Position')
+    plt.grid(True)
+    plt.legend()
 
-    # plt.savefig(project_path / 'examples' / '13_trajectory.pdf')
+    plt.savefig(project_path / 'examples' / '13_trajectory.pdf')
